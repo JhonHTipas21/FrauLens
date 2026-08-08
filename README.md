@@ -18,7 +18,7 @@ This project goes beyond giving a simple black-box classification score. It sepa
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The pipeline consists of four decoupled layers following a pattern validated in industrial production systems:
 
@@ -44,7 +44,7 @@ The pipeline consists of four decoupled layers following a pattern validated in 
 
 ---
 
-## 🛠️ SOLID Principles Applied
+## SOLID Principles Applied
 
 The codebase is engineered strictly around SOLID design patterns:
 
