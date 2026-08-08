@@ -22,13 +22,13 @@ VALID_COLUMNS = ["Time", "Amount", "Class"] + [f"V{i}" for i in range(1, 29)]
 
 
 def _make_valid_csv(n_rows: int = 10) -> str:
-    """Creates a minimal valid CSV string matching the expected schema."""
+    """Creates a minimal valid CSV string matching the expected schema (without headers)."""
     np.random.seed(0)
     data = {col: np.random.randn(n_rows) for col in VALID_COLUMNS}
     data["Class"] = np.zeros(n_rows, dtype=int)
     data["Class"][0] = 1
     df = pd.DataFrame(data)
-    return df.to_csv(index=False)
+    return df.to_csv(index=False, header=False)
 
 
 # ---------------------------------------------------------------------------
