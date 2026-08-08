@@ -16,15 +16,14 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 
-from src.data_loader import get_or_download_dataset
+from src.data_loader import load_dataset
 from src.anomaly_detector import IsolationForestDetector
 from src.utils import temporal_split, DataPreprocessor, calculate_metrics
 
 # %%
 # 1. Load Dataset
 print("Loading dataset...")
-csv_path = get_or_download_dataset()
-df = pd.read_csv(csv_path)
+df = load_dataset()
 print(f"Dataset shape: {df.shape}")
 
 # %%
