@@ -2,6 +2,38 @@ import argparse
 import sys
 from pathlib import Path
 
+from typing import Dict, Any
+from src.utils import load_model_artifacts
+
+def load_and_validate_model(model_path_str: str) -> Dict[str, Any]:
+    """Loads and validates the serialized model artifacts.
+    
+    Args:
+        model_path_str: Path to the serialized .joblib file.
+        
+    Returns:
+        Dictionary of loaded model artifacts.
+    """
+    model_path = Path(model_path_str)
+    if not model_path.exists():
+        print(f"Error: Model file not found at {model_path.resolve()}", file=sys.stderr)
+        print("Please train the model first by running: python3 src/train.py", file=sys.stderr)
+        sys.exit(1)
+        
+    try:
+        artifacts = load_model_artifacts(model_path)
+    except Exception as e:
+        print(f"Error loading model artifacts: {e}", file=sys.stderr)
+        sys.exit(1)
+        
+    required_keys = ["preprocessor", "classifier", "feature_names"]
+    for key in required_keys:
+        if key not in artifacts:
+            print(f"Error: Missing required component '{key}' in model artifacts.", file=sys.stderr)
+            sys.exit(1)
+            
+    return artifacts
+
 def main() -> None:
     """Entry point for the FraudLens CLI."""
     parser = argparse.ArgumentParser(
@@ -47,7 +79,9 @@ def main() -> None:
         parser.print_help()
         sys.exit(1)
         
-    print(f"Executing FraudLens CLI in mode: {args.mode}")
+    # Load and validate artifacts
+    artifacts = load_and_validate_model(args.model)
+    print(f"Loaded model artifacts. Mode: {args.mode}")
 
 if __name__ == "__main__":
     main()
