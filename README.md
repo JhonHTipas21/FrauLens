@@ -114,7 +114,7 @@ FrauLens/
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 1.  **Clone the repository**:
     ```bash
@@ -142,7 +142,7 @@ FrauLens/
 
 ---
 
-## 🖥️ Running the Application
+## Running the Application
 
 Launch the Streamlit audit dashboard locally:
 ```bash
