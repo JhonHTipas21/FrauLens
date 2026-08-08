@@ -56,7 +56,7 @@ The codebase is engineered strictly around SOLID design patterns:
 
 ---
 
-## 📈 Model Evaluation & Business Impact
+## Model Evaluation & Business Impact
 
 ### 1. Verification & Metrics (Temporal Split)
 Fraud models must be evaluated chronologically, as fraud behavior shifts over time. We split the Kaggle Credit Card dataset temporally using the `Time` feature (first 80% of transactions for training, last 20% for testing).
@@ -79,7 +79,7 @@ The Streamlit dashboard includes an **interactive cost-minimizer simulator**:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FrauLens/
