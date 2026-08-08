@@ -1,4 +1,4 @@
-# FraudLens 🔍 — Explainable Fraud Detection System
+# FraudLens - Explainable Fraud Detection System
 
 FraudLens is an advanced financial transaction fraud detection system. It employs a two-phase ML pipeline—combining unsupervised anomaly detection (**Isolation Forest**) with supervised classification (**XGBoost**)—and features a decoupled explainability layer (**SHAP**) visualized on a premium **Streamlit** dashboard designed for risk analysts.
 
@@ -6,15 +6,15 @@ This project goes beyond giving a simple black-box classification score. It sepa
 
 ---
 
-## 📖 Table of Contents
-1. [System Architecture](#-system-architecture)
-2. [SOLID Principles Applied](#%EF%B8%8F-solid-principles-applied)
-3. [Model Evaluation & Business Impact](#-model-evaluation--business-impact)
-4. [Project Structure](#-project-structure)
-5. [Installation & Setup](#%EF%B8%8F-installation--setup)
-6. [Running the Application](#%EF%B8%8F-running-the-application)
-7. [Testing Suite](#%EF%B8%8F-testing-suite)
-8. [Automated CI/CD Pipeline](#-automated-cicd-pipeline)
+## Table of Contents
+1. [System Architecture](#system-architecture)
+2. [SOLID Principles Applied](#solid-principles-applied)
+3. [Model Evaluation & Business Impact](#model-evaluation--business-impact)
+4. [Project Structure](#project-structure)
+5. [Installation & Setup](#installation--setup)
+6. [Running the Application](#running-the-application)
+7. [Testing Suite](#testing-suite)
+8. [Automated CI/CD Pipeline](#automated-cicd-pipeline)
 
 ---
 
