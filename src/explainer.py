@@ -1,18 +1,22 @@
 import numpy as np
 import shap
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from .interfaces import BaseExplainer, Explanation, FeatureExplanation
 from .classifier import FraudClassifier
 
 class SHAPExplainer(BaseExplainer):
-    """
-    SHAP TreeExplainer implementation of BaseExplainer.
-    Provides explanations for individual predictions and global feature importances.
+    """SHAP TreeExplainer implementation of BaseExplainer.
+    
+    Provides explanations for individual predictions and global feature importances
+    by wrapper interface to TreeExplainer, which is optimized for tree ensembles.
+    
+    Attributes:
+        fraud_classifier: A fitted FraudClassifier instance.
+        explainer: The internal shap.TreeExplainer object.
     """
     
-    def __init__(self, fraud_classifier: FraudClassifier):
-        """
-        Initializes the SHAPExplainer.
+    def __init__(self, fraud_classifier: FraudClassifier) -> None:
+        """Initializes the SHAPExplainer.
         
         Args:
             fraud_classifier: A fitted FraudClassifier instance.
@@ -22,15 +26,17 @@ class SHAPExplainer(BaseExplainer):
         self.explainer = shap.TreeExplainer(self.fraud_classifier.classifier)
 
     def explain_instance(self, X_instance: np.ndarray, feature_names: List[str]) -> Explanation:
-        """
-        Explains a single transaction prediction.
+        """Explains a single transaction prediction.
+        
+        This obtains the anomaly score for the instance, augments the feature array,
+        runs SHAP value attribution, and translates output into a unified Explanation structure.
         
         Args:
-            X_instance: 1D or 2D array of shape (n_features,) or (1, n_features).
-            feature_names: List of strings containing original feature names.
+            X_instance: Input features of shape (n_features,) or (1, n_features).
+            feature_names: List of original feature names.
             
         Returns:
-            Explanation object containing base value, prediction score, and feature-level attributions.
+            Explanation object containing base value, prediction score, and feature attributions.
         """
         if len(X_instance.shape) == 1:
             X_instance = X_instance.reshape(1, -1)
@@ -80,15 +86,14 @@ class SHAPExplainer(BaseExplainer):
         )
 
     def explain_global(self, X_samples: np.ndarray, feature_names: List[str]) -> Dict[str, float]:
-        """
-        Calculates global feature importances as the mean absolute SHAP value for each feature.
+        """Calculates global feature importances as the mean absolute SHAP value for each feature.
         
         Args:
-            X_samples: 2D array of representative background transactions.
-            feature_names: List of strings containing original feature names.
+            X_samples: Representative background transactions of shape (n_samples, n_features).
+            feature_names: List of original feature names.
             
         Returns:
-            Dictionary mapping feature names to their global importance score.
+            Dictionary mapping feature names to their global importance score, sorted descending.
         """
         # Augment features with anomaly score
         anomaly_scores = self.fraud_classifier.anomaly_detector.predict_anomaly_score(X_samples)
