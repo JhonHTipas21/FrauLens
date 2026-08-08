@@ -156,7 +156,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🧪 Testing Suite
+## Testing Suite
 
 We maintain unit and integration tests using `pytest` to ensure pipeline consistency:
 ```bash
@@ -171,7 +171,7 @@ The suite verifies:
 
 ---
 
-## 🚀 Automated CI/CD Pipeline
+## Automated CI/CD Pipeline
 
 We utilize **GitHub Actions** for CI/CD checks:
 *   Runs automatically on every `push` or `pull_request` to `main`.
