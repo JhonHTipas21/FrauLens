@@ -2,7 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from src.utils import load_model_artifacts
 
 def load_and_validate_model(model_path_str: str) -> Dict[str, Any]:
@@ -33,6 +33,71 @@ def load_and_validate_model(model_path_str: str) -> Dict[str, Any]:
             sys.exit(1)
             
     return artifacts
+
+import json
+import pandas as pd
+from src.explainer import SHAPExplainer
+
+def predict_single(features: List[float], artifacts: Dict[str, Any]) -> None:
+    """Audits a single transaction and prints SHAP explainability results in JSON format.
+    
+    Args:
+        features: List of 30 numerical transaction values.
+        artifacts: Dictionary containing preprocessor and model components.
+    """
+    preprocessor = artifacts["preprocessor"]
+    classifier = artifacts["classifier"]
+    feature_names = artifacts["feature_names"]
+    
+    if len(features) != 30:
+        print(f"Error: Expected exactly 30 feature values (Time, V1-V28, Amount). Received {len(features)}.", file=sys.stderr)
+        sys.exit(1)
+        
+    # Construct DataFrame with proper headers
+    columns = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
+    df_input = pd.DataFrame([features], columns=columns)
+    
+    # Preprocess feature values
+    X, _ = preprocessor.transform(df_input)
+    
+    # Run predictions
+    prob = float(classifier.predict_proba(X)[0, 1])
+    is_fraud = prob >= 0.50
+    
+    # Assign Risk Tier
+    if prob >= 0.70:
+        risk_tier = "High"
+    elif prob >= 0.20:
+        risk_tier = "Medium"
+    else:
+        risk_tier = "Low"
+        
+    # Compute SHAP explanation
+    explainer = SHAPExplainer(classifier)
+    explanation = explainer.explain_instance(X[0], feature_names)
+    
+    # Format features contribution, sorted by absolute impact descending
+    features_attribution = []
+    for f in explanation.features:
+        features_attribution.append({
+            "feature": f.feature_name,
+            "value": float(f.value),
+            "contribution": float(f.contribution)
+        })
+    features_attribution.sort(key=lambda x: abs(x["contribution"]), reverse=True)
+    
+    # Package output json
+    result = {
+        "transaction_summary": {
+            "fraud_probability": prob,
+            "classification_decision": "Fraud" if is_fraud else "Legitimate",
+            "risk_tier": risk_tier,
+            "base_value": float(explanation.base_value)
+        },
+        "explanations": features_attribution
+    }
+    
+    print(json.dumps(result, indent=4))
 
 def main() -> None:
     """Entry point for the FraudLens CLI."""
@@ -81,7 +146,9 @@ def main() -> None:
         
     # Load and validate artifacts
     artifacts = load_and_validate_model(args.model)
-    print(f"Loaded model artifacts. Mode: {args.mode}")
+    
+    if args.mode == "single":
+        predict_single(args.features, artifacts)
 
 if __name__ == "__main__":
     main()
