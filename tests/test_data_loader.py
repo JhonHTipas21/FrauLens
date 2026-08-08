@@ -18,7 +18,7 @@ from src.data_loader import load_dataset
 # Fixtures
 # ---------------------------------------------------------------------------
 
-VALID_COLUMNS = ["Time", "Amount", "Class"] + [f"V{i}" for i in range(1, 29)]
+VALID_COLUMNS = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount", "Class"]
 
 
 def _make_valid_csv(n_rows: int = 10) -> str:
