@@ -19,8 +19,14 @@ from src.utils import (
     save_model_artifacts
 )
 
-def train_pipeline():
-    print("--- starting FraudLens Training Pipeline ---")
+def train_pipeline() -> None:
+    """Executes the complete end-to-end model training pipeline.
+    
+    This fits the preprocessor, fits the unsupervised anomaly detector, trains
+    the supervised classifier, computes threshold-based performance profiles,
+    and serializes the models and metadata to disk.
+    """
+    print("--- Starting FraudLens Training Pipeline ---")
     
     # 1. Load data
     df = load_dataset()
@@ -39,12 +45,12 @@ def train_pipeline():
     # Save feature names for explanation mapping later
     feature_names = preprocessor.feature_cols
     
-    # 4. Initialize Isolation Forest detector (Fase 1)
+    # 4. Initialize Isolation Forest detector (Phase 1)
     contamination = float(y_train.mean())
     print(f"Initializing Anomaly Detector (contamination rate={contamination:.6f})...")
     detector = IsolationForestDetector(contamination=contamination, random_state=42)
     
-    # 5. Initialize and Fit Hybrid Fraud Classifier (Fase 2)
+    # 5. Initialize and Fit Hybrid Fraud Classifier (Phase 2)
     print("Training Hybrid Classifier (XGBoost + Anomaly Score)...")
     # Calculate scale_pos_weight for XGBoost to handle extreme imbalance
     num_neg = len(y_train) - sum(y_train)
