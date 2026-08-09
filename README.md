@@ -171,9 +171,26 @@ The suite verifies:
 
 ---
 
-## Automated CI/CD Pipeline
+## Automated CI/CD & MLOps Pipelines
 
-We utilize **GitHub Actions** for CI/CD checks:
-*   Runs automatically on every `push` or `pull_request` to `main`.
-*   Sets up Python 3.9, installs dependencies, and runs `flake8` for linting.
-*   Runs the `pytest` suite to guarantee code safety before merging.
+We utilize **GitHub Actions** to govern code quality and model deployment safety.
+
+### 1. Code Quality Pipeline (Continuous Integration)
+Triggered automatically on every `push` or `pull_request` to the `main` branch. It executes:
+*   **Static Code Analysis**: Runs `flake8` for style compliance (PEP 8) and `mypy` for static type safety checks.
+*   **Unit & Integration Tests**: Runs the `pytest` suite to verify pipeline calculations, interfaces, preprocessors, and explainer models under zero-leakage conditions.
+
+### 2. Model Validation & Release Pipeline (MLOps Continuous Deployment)
+Triggered manually (`workflow_dispatch`) or on pull requests affecting training code, data schemas, or validation scripts. It ensures no degraded model is ever deployed to production:
+*   **Data Lineage & Leakage Prevention**: Enforces a chronological temporal split rather than a random split to evaluate model generalization under strict zero-leakage constraints.
+*   **Target Performance Thresholds**: Verifies candidate model metrics against configurable MLOps environment variables (`MIN_AUC_PR`, `MIN_F1`, `MIN_RECALL`). If any validation fails, the build halts.
+*   **Regression Comparison**: Cross-references validation performance against the current production model's reference file (`models/current_metrics.json`) and prints a comparative markdown table directly to the GitHub step summary.
+*   **Conditional SHAP Attributions**: Computes global SHAP feature attributions on a representative sample of validation transactions (only if supported by the underlying estimator).
+*   **Lineage Model Card**: Automatically drafts a markdown model card (`models/model_card_{version}.md`) containing:
+    *   Lineage metadata: UTC training date, Git commit SHA, and MD5 hash of the training dataset.
+    *   Dataset context: Kaggle source details and Open Data Commons Open Database License (ODbL).
+    *   Training details: Hyperparameters, split methods, metrics, threshold, and the confusion matrix.
+    *   Risks and disclaimers: Explains drift risks, leakage mitigations, and includes a critical notice clarifying that the model is strictly for experimental/portfolio use and has not been validated for real-world financial decision-making.
+*   **Validated Artifact Delivery**:
+    *   On pull requests: Uploads the candidate model (`fraud_model.joblib`), model card, and metadata as workflow artifacts.
+    *   On manual dispatch: Creates a tagged GitHub Release attaching the finalized, validated model and model card.
