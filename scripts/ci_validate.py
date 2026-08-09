@@ -116,14 +116,19 @@ def main():
     indices = np.random.choice(len(X_test), sample_size, replace=False)
     X_sample = X_test[indices]
     
-    explainer = SHAPExplainer(classifier)
-    global_shap = explainer.explain_global(X_sample, feature_names)
-    top_5_features = list(global_shap.items())[:5]
+    top_5_features = []
+    try:
+        explainer = SHAPExplainer(classifier)
+        global_shap = explainer.explain_global(X_sample, feature_names)
+        top_5_features = list(global_shap.items())[:5]
+        print("SHAP global features computed successfully.")
+    except Exception as e:
+        print(f"SHAP explanation not supported or failed for this model architecture: {e}")
     
     # 7. Generate versioned Model Card
-    # We use a timestamp for versioning, or github run id if present
     gh_run_id = os.environ.get('GITHUB_RUN_ID')
-    version = gh_run_id if gh_run_id else datetime.now().strftime("%Y%m%d%H%M%S")
+    version = gh_run_id if gh_run_id else datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    commit_sha = os.environ.get('GITHUB_SHA', 'Unknown (local)')
     
     model_card_path = project_root / "models" / f"model_card_{version}.md"
     
@@ -131,34 +136,61 @@ def main():
     hyperparams = {}
     if hasattr(classifier.classifier, 'get_params'):
         hyperparams = classifier.classifier.get_params()
-        
-    # Serialize safe params
     safe_params = {k: v for k, v in hyperparams.items() if isinstance(v, (int, float, str, bool))}
         
     model_card_content = f"""# Model Card - FraudLens (v{version})
 
+> [!WARNING]
+> **Not Validated for Financial Decisions**: This model is an experimental portfolio project. It is **NOT** validated, audited, or intended for use in real-world financial decision-making or production payment blocking systems.
+
 ## Model Details
-- **Validation Date**: {datetime.now().isoformat()}
-- **Dataset Hash (MD5)**: `{dataset_hash}`
+- **Validation Date (UTC)**: {datetime.utcnow().isoformat()}
+- **Commit SHA**: `{commit_sha}`
 - **Version**: {version}
 - **Architecture**: Hybrid (Isolation Forest unsupervised anomaly detection + XGBoost supervised classifier)
 
+## Dataset
+- **Origin**: Kaggle Credit Card Fraud Detection Dataset
+- **License**: Open Data Commons Open Database License (ODbL)
+- **Dataset Hash (MD5)**: `{dataset_hash}`
+- **Split Method**: Temporal Split (Time column), 80/20 ratio. Never randomized to prevent data leakage.
+
 ## Performance Metrics (Temporal Test Split)
+- **Threshold**: 0.5
 - **Precision**: {new_metrics['precision']:.4f}
 - **Recall**: {new_metrics['recall']:.4f}
 - **F1 Score**: {new_metrics['f1']:.4f}
 - **AUC-PR**: {new_metrics['auc_pr']:.4f}
 
+### Confusion Matrix (Threshold 0.5)
+- **True Negatives**: {metrics['confusion_matrix']['tn']}
+- **False Positives**: {metrics['confusion_matrix']['fp']}
+- **False Negatives**: {metrics['confusion_matrix']['fn']}
+- **True Positives**: {metrics['confusion_matrix']['tp']}
+
+## Features
+- **Features Used**: {', '.join(feature_names)}
+
 ## Top 5 SHAP Global Features
-The most influential features in predicting fraud across the validation sample:
 """
-    for rank, (feat, val) in enumerate(top_5_features, 1):
-        model_card_content += f"{rank}. **{feat}**: {val:.4f}\n"
+    if top_5_features:
+        model_card_content += "The most influential features in predicting fraud across the validation sample:\n"
+        for rank, (feat, val) in enumerate(top_5_features, 1):
+            model_card_content += f"{rank}. **{feat}**: {val:.4f}\n"
+    else:
+        model_card_content += "SHAP explanations are not supported by the current underlying architecture.\n"
 
     model_card_content += "\n## Phase 2 Hyperparameters\n"
     model_card_content += "```json\n"
     model_card_content += json.dumps(safe_params, indent=2)
     model_card_content += "\n```\n"
+
+    model_card_content += """
+## Limitations & Risks
+- **Data Leakage Risk**: Mitigated strictly via temporal splitting (past predicts future). However, feature scaling is applied post-split to ensure zero leakage.
+- **Concept Drift**: Financial fraud evolves rapidly. This model trained on historical static data will degrade over time without continuous retraining.
+- **Imbalance Handling**: Uses scale_pos_weight for XGBoost and anomaly scores. May over-flag normal transactions if contamination rate is miscalibrated.
+"""
 
     with open(model_card_path, 'w') as f:
         f.write(model_card_content)

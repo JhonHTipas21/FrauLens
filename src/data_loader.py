@@ -59,6 +59,12 @@ def get_or_download_dataset() -> Path:
     Returns:
         The absolute Path to the extracted creditcard.csv file.
     """
+    env_path = os.environ.get("FRAUDLENS_DATA_PATH")
+    if env_path:
+        path = Path(env_path)
+        print(f"Using dataset from environment variable FRAUDLENS_DATA_PATH: {path}")
+        return path
+
     if CSV_PATH.exists():
         print(f"Dataset already exists at {CSV_PATH.resolve()}")
         return CSV_PATH
