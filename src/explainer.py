@@ -1,6 +1,6 @@
 import numpy as np
 import shap
-from typing import List, Dict, Any, Union
+from typing import List, Dict
 from .interfaces import BaseExplainer, Explanation, FeatureExplanation
 from .classifier import FraudClassifier
 

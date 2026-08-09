@@ -1,4 +1,3 @@
-import os
 import sys
 import json
 from pathlib import Path
@@ -41,6 +40,8 @@ def train_pipeline() -> None:
     
     X_train, y_train = preprocessor.transform(train_df)
     X_test, y_test = preprocessor.transform(test_df)
+    assert y_train is not None
+    assert y_test is not None
     
     # Save feature names for explanation mapping later
     feature_names = preprocessor.feature_cols
