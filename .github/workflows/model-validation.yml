@@ -46,7 +46,7 @@ jobs:
         run: mypy src/ scripts/
 
       - name: Run Unit Tests
-        run: pytest tests/
+        run: python3 -m pytest tests/
 
       - name: Retrain FraudLens Pipeline (Fixture Dataset)
         run: python src/train.py
