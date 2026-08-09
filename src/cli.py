@@ -97,19 +97,19 @@ def predict_single(features: List[float], artifacts: Dict[str, Any]) -> None:
     explainer = SHAPExplainer(classifier)
     explanation = explainer.explain_instance(X[0], feature_names)
 
-    # Format feature contributions sorted by absolute impact descending
-    features_attribution = sorted(
-        [
-            {
-                "feature": f.feature_name,
-                "value": float(f.value),
-                "contribution": float(f.contribution),
-            }
-            for f in explanation.features
-        ],
-        key=lambda x: abs(x["contribution"]),
+    sorted_features = sorted(
+        explanation.features,
+        key=lambda f: abs(f.contribution),
         reverse=True,
     )
+    features_attribution = [
+        {
+            "feature": f.feature_name,
+            "value": float(f.value),
+            "contribution": float(f.contribution),
+        }
+        for f in sorted_features
+    ]
 
     result = {
         "transaction_summary": {
